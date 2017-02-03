@@ -59,21 +59,24 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
         ListView myListView = (ListView) findViewById(R.id.MyListView);
         myListView.setAdapter(adapter);
-        myListView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+        myListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(
                     AdapterView<?> parent,
                     View view,
                     int position,
                     long id
-            ){
+            ) {
                 Intent intent = new Intent(MainActivity.this, CustomActivity.class);
                 intent.putExtra(EXTRA_MYID, id);
                 startActivity(intent);
             }
-                                          });
+        });
 
-  //      Switch switch1 = (Switch) myListView.findViewById(R.id.mswitch);
+     //   Switch switch1 = (Switch) myListView.findViewById(R.id.mswitch);
+
+
+
   //      myListView.setAdapter(adapter);
 
           //  CompoundButton toggle = (CompoundButton) myListView.findViewById(R.id.mswitch);

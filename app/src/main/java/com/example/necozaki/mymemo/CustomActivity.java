@@ -2,6 +2,7 @@ package com.example.necozaki.mymemo;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
+import android.app.TimePickerDialog;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
@@ -15,21 +16,25 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.CalendarView;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TimePicker;
 import android.widget.Toast;
+
 
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.appindexing.Thing;
 import com.google.android.gms.common.api.GoogleApiClient;
 
+import java.sql.Time;
 import java.util.Calendar;
+import android.app.TimePickerDialog;
 
 public class CustomActivity extends AppCompatActivity {
 
-
+    private TimePickerDialog.OnTimeSetListener varTimeSetListener;
     private long memoId;
     private int notificationId = 0;
 
@@ -46,40 +51,88 @@ public class CustomActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_custom);
 
+        CalendarView calendarview = (CalendarView) this.findViewById(R.id.calendarView2);
+        calendarview.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
+            @Override
+            public void onSelectedDayChange(CalendarView view, int year, int month, int dayOfMonth) {
+                int hour[] = new int[2];
+                month = month + 1;
+
+                Calendar calendar = Calendar.getInstance();
+                int nowyeah = calendar.get(Calendar.YEAR);
+                int nowmonth = calendar.get(Calendar.MONTH);
+                int nowday = calendar.get(Calendar.DAY_OF_MONTH);
+
+                // EditTextを取得
+                EditText editText = (EditText) findViewById(R.id.editText);
+                // EditTextの中身を取得
+                String Todo = editText.getText().toString().trim();
+
+                if(year < nowyeah || month - 1 < nowmonth || dayOfMonth < nowday) {
+
+                    AlertDialog.Builder alert = new AlertDialog.Builder(CustomActivity.this);
+                    alert.setTitle("日時選択");
+                    alert.setMessage("過去の日時を選択することはできません。");
+                    alert.setPositiveButton("OK",
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+
+                                }
+                            });
+                    alert.create().show();
+
+                } else if (Todo.equals("")) {
+
+                    editText.setError("予定が入力されていません");
+
+
+
+                }
+                else{
+                    //時間指定
+                    TimePickerShow(year, month, dayOfMonth);
+                }
+
+            }
+        });
+
+
+
+
         Intent intent = getIntent();
         memoId = intent.getLongExtra(MainActivity.EXTRA_MYID, 0L);
 
-        TimePicker timePicker = (TimePicker) this.findViewById(R.id.timePicker);
-        timePicker.setIs24HourView(true);
+    //    TimePicker timePicker = (TimePicker) this.findViewById(R.id.timePicker);
+   //     timePicker.setIs24HourView(true);
 
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
     }
 
-    public void setAlarm(View view) {
 
-        Spinner spinner = (Spinner)findViewById(R.id.spinner);
-        //timePickerさんにお伺い
-        TimePicker timePicker = (TimePicker) this.findViewById(R.id.timePicker);
+
+
+
+    public void setAlarm(int year, int month, int dayOfMonth, int hour, int minute) {
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(year, month, dayOfMonth, hour, minute);
+        int week = calendar.get(Calendar.DAY_OF_WEEK);
 
         // EditTextを取得
         EditText editText = (EditText) findViewById(R.id.editText);
         // EditTextの中身を取得
         String Todo = editText.getText().toString().trim();
+        //timePickerさんにお伺い
+        //TimePicker timePicker = (TimePicker) this.findViewById(R.id.timePicker);
 
-        if (Todo.equals("")) {
-
-            editText.setError("予定が入力されていません");
-
-        } else {
-
-            int hour;
             int minuteOne;
             int minuteTwo;
-            Calendar c = Calendar.getInstance();
-            hour = timePicker.getHour();
-            minuteOne = timePicker.getMinute();
+          //  Calendar c = Calendar.getInstance();
+
+            minuteOne = minute;
             if(minuteOne >= 10){
                 minuteTwo = minuteOne % 10;
                 minuteOne = minuteOne / 10;
@@ -87,14 +140,38 @@ public class CustomActivity extends AppCompatActivity {
                 minuteTwo = minuteOne;
                 minuteOne = 0;
             }
+            String weekday = "???";
+            switch (week){
+                case 1:
+                    weekday = "日曜日";
+                    break;
+                case 2:
+                    weekday = "月曜日";
+                    break;
+                case 3:
+                    weekday = "火曜日";
+                    break;
+                case 4:
+                    weekday = "水曜日";
+                    break;
+                case 5:
+                    weekday = "木曜日";
+                    break;
+                case 6:
+                    weekday = "金曜日";
+                    break;
+                case 7:
+                    weekday = "土曜日";
+                    break;
+            }
 
-            String weekday = (String)spinner.getSelectedItem();
             // ポップアップ表示
             Toast.makeText(
                     CustomActivity.this,
-                    weekday + "\n" + hour + "時" + minuteOne + minuteTwo + "分にセットしました\n"   + "' " + Todo + " '",
+                   month + "月" + dayOfMonth + "日　" + weekday + "\n" + hour + "時" + minuteOne + minuteTwo + "分にセットしました\n"   + "' " + Todo + " '",
                     Toast.LENGTH_SHORT).show();
 
+            // AlarmManagerから通知を受け取るレシーバーを定義する
             Intent bootIntent = new Intent(CustomActivity.this, AlarmReceiver.class);
             bootIntent.putExtra("notificationId",notificationId);
             bootIntent.putExtra("todo",Todo);
@@ -118,7 +195,7 @@ public class CustomActivity extends AppCompatActivity {
             Calendar startTime = Calendar.getInstance();
 
 
-            int idx = spinner.getSelectedItemPosition();
+            int idx = week;
             //このフィールドの値は1から7で、
             // SUNDAY(1)、MONDAY(2)、TUESDAY(3)、WEDNESDAY(4)、THURSDAY(5)、FRIDAY(6)、および SATURDAY(7) になります。
             if(idx > 0){
@@ -160,7 +237,7 @@ public class CustomActivity extends AppCompatActivity {
 
             );
 
-        }
+
 
 
     }
@@ -187,8 +264,82 @@ public class CustomActivity extends AppCompatActivity {
                     }
                 })
                 .show();
-
     }
+    //時間選択
+    public int[] TimePickerShow(final int year, final int month, final int dayOfMonth){
+        Calendar calendar = Calendar.getInstance();
+        final int hour[] = new int[2];
+        final int yeah = year;
+        hour[0] = calendar.get(Calendar.HOUR_OF_DAY);
+        hour[1] = calendar.get(Calendar.MINUTE);
+        TimePickerDialog timepick = new TimePickerDialog(
+                this,
+                new TimePickerDialog.OnTimeSetListener(){
+                    public void  onTimeSet(TimePicker view,int hourOfDay, int minute){
+                        Calendar calendar = Calendar.getInstance();
+                        int nowmonth = calendar.get(Calendar.MONTH);
+                        nowmonth = nowmonth + 1;
+                        int nowday = calendar.get(Calendar.DAY_OF_MONTH);
+                        AlertDialog.Builder alert = new AlertDialog.Builder(CustomActivity.this);
+
+                        //当日選択の場合のみ、過去の時間を選択させない処理
+                        if(nowmonth == month && nowday == dayOfMonth){
+
+                            if(hourOfDay < hour[0]) {
+                                alert.setTitle("日時選択");
+                                alert.setMessage("過去の時間を選択することはできません。");
+                                alert.setPositiveButton("OK",
+                                        new DialogInterface.OnClickListener() {
+                                            @Override
+                                            public void onClick(DialogInterface dialog, int which) {
+
+                                            }
+                                        });
+                                alert.create().show();
+                                return;
+
+                            }else if(hourOfDay == hour[0]){
+                                    if(minute <= hour[1]){
+                                        alert.setTitle("日時選択");
+                                        alert.setMessage("過去の時間を選択することはできません。");
+                                        alert.setPositiveButton("OK",
+                                                new DialogInterface.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(DialogInterface dialog, int which) {
+
+                                                    }
+                                                });
+                                        alert.create().show();
+                                        return;
+                                    }
+                                }
+
+                        }
+                        hour[0] = hourOfDay;
+                        hour[1] = minute;
+                        setAlarm(yeah, month, dayOfMonth, hour[0], hour[1]);
+
+
+                        // ポップアップ表示
+                 /*       Toast.makeText(
+                                CustomActivity.this,
+                                year + "年" + month + "月" + dayOfMonth
+                                        + "\n" + hour[0] + hour[1],
+
+                                Toast.LENGTH_SHORT).show();
+                   */
+
+                    }
+                },
+                hour[0],
+                hour[1],
+                true);
+        timepick.show();
+
+        return hour;
+    }
+
+
 
 
     /**
