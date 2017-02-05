@@ -37,6 +37,8 @@ public class CustomActivity extends AppCompatActivity {
     private TimePickerDialog.OnTimeSetListener varTimeSetListener;
     private long memoId;
     private int notificationId = 0;
+    private String tododata;
+    private int AlarmNumber;
 
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -101,7 +103,13 @@ public class CustomActivity extends AppCompatActivity {
 
 
         Intent intent = getIntent();
+
         memoId = intent.getLongExtra(MainActivity.EXTRA_MYID, 0L);
+        tododata = intent.getStringExtra(MainActivity.todoData);
+        AlarmNumber = intent.getIntExtra(MainActivity.AlarmNum,0);
+
+        EditText editText = (EditText) findViewById(R.id.editText);
+        editText.setText(tododata);
 
     //    TimePicker timePicker = (TimePicker) this.findViewById(R.id.timePicker);
    //     timePicker.setIs24HourView(true);
@@ -164,45 +172,51 @@ public class CustomActivity extends AppCompatActivity {
                     weekday = "土曜日";
                     break;
             }
-
+        String pendingId = Integer.toString(year) + Integer.toString(month) + Integer.toString(dayOfMonth) + Integer.toString(hour) + Integer.toString(minute);
+        int pendingid = Integer.parseInt(pendingId);
             // ポップアップ表示
             Toast.makeText(
                     CustomActivity.this,
-                   month + "月" + dayOfMonth + "日　" + weekday + "\n" + hour + "時" + minuteOne + minuteTwo + "分にセットしました\n"   + "' " + Todo + " '",
+                   month + "月" + dayOfMonth + "日　" + weekday + "\n" + hour + "時" + minuteOne + minuteTwo + "分にセットしました\n"   + "' " + Todo + " '" + pendingid,
                     Toast.LENGTH_SHORT).show();
+
+            //AlarmManager
+            AlarmManager alarm = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
 
             // AlarmManagerから通知を受け取るレシーバーを定義する
             Intent bootIntent = new Intent(CustomActivity.this, AlarmReceiver.class);
             bootIntent.putExtra("notificationId",notificationId);
             bootIntent.putExtra("todo",Todo);
 
+
+
+            //pendingintentの第二引数は重複不可であるため、現時点では日付+時刻の運用とする
             PendingIntent alarmIntent = PendingIntent.getBroadcast(
                     CustomActivity.this,
-                    0,
+                    pendingid,
                     bootIntent,
                     PendingIntent.FLAG_CANCEL_CURRENT);
 
-            AlarmManager alarm = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+
+
 
             int sethour = hour;
             int setminute = 0;
             if(minuteOne > 0){
                 setminute = minuteOne * 10;
             }
-
             setminute += minuteTwo;
 
             Calendar startTime = Calendar.getInstance();
 
-
             int idx = week;
-            //このフィールドの値は1から7で、
-            // SUNDAY(1)、MONDAY(2)、TUESDAY(3)、WEDNESDAY(4)、THURSDAY(5)、FRIDAY(6)、および SATURDAY(7) になります。
+            // SUNDAY(1)、MONDAY(2)、TUESDAY(3)、WEDNESDAY(4)、THURSDAY(5)、FRIDAY(6)、および SATURDAY(7)
             if(idx > 0){
                 startTime.set(Calendar.DAY_OF_WEEK, idx);
             }
 
             startTime.set(Calendar.HOUR_OF_DAY, sethour);
+            startTime.set(Calendar.DAY_OF_MONTH, dayOfMonth);
             startTime.set(Calendar.MINUTE, setminute);
             startTime.set(Calendar.SECOND, 0);
 
@@ -216,11 +230,18 @@ public class CustomActivity extends AppCompatActivity {
             notificationId++;
 
             String title = Todo;
-            String updated = Integer.toString(hour) + " : " + Integer.toString(minuteOne) + Integer.toString(minuteTwo);
+            String updated = Integer.toString(hour) + ":" + Integer.toString(minuteOne) + Integer.toString(minuteTwo);
+            String date = "";
+            if (dayOfMonth < 10) {
+                date = Integer.toString(month) + "/0" + Integer.toString(dayOfMonth);
+            } else{
+                date = Integer.toString(month) + "/" + Integer.toString(dayOfMonth);
+            }
 
             ContentValues values = new ContentValues();
             values.put(MemoContract.Memos.COL_TITLE, title);
             values.put(MemoContract.Memos.COL_UPDATED, updated);
+            values.put(MemoContract.Memos.COL_CREATE, date);
 
 
             //データ更新

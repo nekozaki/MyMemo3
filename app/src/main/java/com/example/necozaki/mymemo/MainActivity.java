@@ -31,6 +31,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private long memoId;
     private SimpleCursorAdapter adapter;
     public final static String EXTRA_MYID = "com.example.necozaki.mymemo.MYID";
+    public final static String todoData = "";
+    public final static String AlarmNum = "";
     private final String TAG = "Test02_01";
 
     @Override
@@ -38,14 +40,16 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        String[] from = {
+        final String[] from = {
                 MemoContract.Memos.COL_TITLE,
-                MemoContract.Memos.COL_UPDATED
+                MemoContract.Memos.COL_UPDATED,
+                MemoContract.Memos.COL_CREATE
         };
 
         int[] to = {
                 R.id.text1,
-                R.id.text2
+                R.id.text2,
+                R.id.text3
         };
 
         adapter = new SimpleCursorAdapter(
@@ -69,6 +73,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             ) {
                 Intent intent = new Intent(MainActivity.this, CustomActivity.class);
                 intent.putExtra(EXTRA_MYID, id);
+                intent.putExtra(todoData,from[0]);
+                intent.putExtra(AlarmNum,position);
                 startActivity(intent);
             }
         });
@@ -124,6 +130,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         values.put(MemoContract.Memos.COL_TITLE, "new");
         values.put(MemoContract.Memos.COL_BODY, "new");
         values.put(MemoContract.Memos.COL_UPDATED, "0:00");
+        values.put(MemoContract.Memos.COL_CREATE, "1/01");
+
 
 
         getContentResolver().insert(
@@ -138,7 +146,9 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         String[] projection = {
                 MemoContract.Memos._ID,
                 MemoContract.Memos.COL_TITLE,
-                MemoContract.Memos.COL_UPDATED
+                MemoContract.Memos.COL_UPDATED,
+                MemoContract.Memos.COL_CREATE
+
         };
         return new CursorLoader(
                 this,
