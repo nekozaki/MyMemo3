@@ -35,6 +35,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     public final static String EXTRA_MYID = "com.example.necozaki.mymemo.MYID";
     public final static String todoData = "";
     public final static String AlarmNum = "";
+    public final static String pendingintent = "";
     private final String TAG = "Test02_01";
 
     @Override
@@ -45,15 +46,13 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         final String[] from = {
                 MemoContract.Memos.COL_TITLE,
                 MemoContract.Memos.COL_UPDATED,
-                MemoContract.Memos.COL_CREATE,
-                MemoContract.Memos._ID
+                MemoContract.Memos.COL_CREATE,//日付
         };
 
         int[] to = {
                 R.id.text1,
                 R.id.text2,
                 R.id.text3,
-                R.id.text4
         };
 
         adapter = new SimpleCursorAdapter(
@@ -81,6 +80,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 intent.putExtra(EXTRA_MYID, id);
                 intent.putExtra(todoData,from[0]);
                 intent.putExtra(AlarmNum,position);
+                intent.putExtra(pendingintent, MemoContract.Memos.COL_UPDATED);
                 startActivity(intent);
             }
         });
@@ -139,7 +139,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         values.put(MemoContract.Memos.COL_CREATE, "1/01");
 
 
-
         getContentResolver().insert(
                 MemoContentProvider.CONTENT_URI,
                 values
@@ -153,7 +152,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 MemoContract.Memos._ID,
                 MemoContract.Memos.COL_TITLE,
                 MemoContract.Memos.COL_UPDATED,
-                MemoContract.Memos.COL_CREATE
+                MemoContract.Memos.COL_CREATE,
 
         };
         return new CursorLoader(

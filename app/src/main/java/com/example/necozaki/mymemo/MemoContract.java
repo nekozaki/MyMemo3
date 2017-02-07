@@ -16,5 +16,6 @@ public final class MemoContract {
         public static final String COL_BODY = "body";
         public static final String COL_CREATE = "created";
         public static final String COL_UPDATED = "updated";
+
     }
 }

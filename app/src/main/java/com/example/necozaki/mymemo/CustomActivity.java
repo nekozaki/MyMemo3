@@ -8,6 +8,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
@@ -17,8 +18,10 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.CalendarView;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
@@ -39,7 +42,7 @@ public class CustomActivity extends AppCompatActivity {
     private int notificationId = 0;
     private String tododata;
     private int AlarmNumber;
-
+    private String pendingid;
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -52,6 +55,42 @@ public class CustomActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_custom);
+
+/*
+        MemoOpenHelper memoOpenHelper = new MemoOpenHelper(this);
+        SQLiteDatabase db = memoOpenHelper.getWritableDatabase();
+
+
+
+
+
+
+        Cursor c = null;
+        c = db.query(
+                MemoContract.Memos.TABLE_NAME,
+                null, // fields
+                MemoContract.Memos._ID +  " = " + memoId, // where
+                new String[] {""}, // where arg
+                null, // groupBy
+                null, // having
+                null // order by
+        );
+        Log.v("DB_TEST", "Count: " + c.getCount());
+        while(c.moveToNext()) {
+            int id = c.getInt(c.getColumnIndex(MemoContract.Memos._ID));
+            String name = c.getString(c.getColumnIndex(MemoContract.Memos.COL_CREATE));
+            int score = c.getInt(c.getColumnIndex(MemoContract.Memos.COL_UPDATED));
+            Log.v("DB_TEST", "id: " + id + " name: " + name + " score: " + score);
+        }
+        c.close();
+
+        // close db
+        db.close();
+
+
+        TextView textView = (TextView)findViewById(R.id.textView);
+        textView.setText(pendingid);
+        */
 
         CalendarView calendarview = (CalendarView) this.findViewById(R.id.calendarView2);
         calendarview.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
@@ -107,9 +146,11 @@ public class CustomActivity extends AppCompatActivity {
         memoId = intent.getLongExtra(MainActivity.EXTRA_MYID, 0L);
         tododata = intent.getStringExtra(MainActivity.todoData);
         AlarmNumber = intent.getIntExtra(MainActivity.AlarmNum,0);
+        pendingid = intent.getStringExtra(MainActivity.pendingintent);
 
         EditText editText = (EditText) findViewById(R.id.editText);
         editText.setText(tododata);
+
 
     //    TimePicker timePicker = (TimePicker) this.findViewById(R.id.timePicker);
    //     timePicker.setIs24HourView(true);
@@ -124,6 +165,14 @@ public class CustomActivity extends AppCompatActivity {
 
 
     public void setAlarm(int year, int month, int dayOfMonth, int hour, int minute) {
+
+        //checkboxがチェックされていたら繰り返しON
+        final CheckBox chcbox = (CheckBox)findViewById(R.id.checkBox);
+        boolean repeat = false;
+        if (chcbox.isChecked() == true)
+        {
+         repeat = true;
+        }
 
         Calendar calendar = Calendar.getInstance();
         calendar.set(year, month, dayOfMonth, hour, minute);
@@ -172,12 +221,11 @@ public class CustomActivity extends AppCompatActivity {
                     weekday = "土曜日";
                     break;
             }
-        String pendingId = Integer.toString(month) + Integer.toString(dayOfMonth) + Integer.toString(hour) + Integer.toString(minute);
-        int pendingid = Integer.parseInt(pendingId);
+
             // ポップアップ表示
             Toast.makeText(
                     CustomActivity.this,
-                   month + "月" + dayOfMonth + "日　" + weekday + "\n" + hour + "時" + minuteOne + minuteTwo + "分にセットしました\n"   + "' " + Todo + " '" + pendingid,
+                   month + "月" + dayOfMonth + "日　" + weekday + "\n" + hour + "時" + minuteOne + minuteTwo + "分にセットしました\n"   + "' " + Todo ,
                     Toast.LENGTH_SHORT).show();
 
             //AlarmManager
@@ -188,60 +236,102 @@ public class CustomActivity extends AppCompatActivity {
             bootIntent.putExtra("notificationId",notificationId);
             bootIntent.putExtra("todo",Todo);
 
+        //pendingintentの第二引数は重複不可であるため、現時点では日付+時刻の運用とする
+        String pendingId = Integer.toString(month) + Integer.toString(dayOfMonth) + Integer.toString(hour) + Integer.toString(minute);
+        int pendingid = Integer.parseInt(pendingId);
 
+        PendingIntent alarmIntent = PendingIntent.getBroadcast(
+                CustomActivity.this,
+                pendingid,
+                bootIntent,
+                PendingIntent.FLAG_CANCEL_CURRENT);
 
-            //pendingintentの第二引数は重複不可であるため、現時点では日付+時刻の運用とする
-            PendingIntent alarmIntent = PendingIntent.getBroadcast(
+        int sethour = hour;
+        int setminute = 0;
+        if(minuteOne > 0){
+            setminute = minuteOne * 10;
+        }
+        setminute += minuteTwo;
+
+        Calendar startTime = Calendar.getInstance();
+
+        int idx = week;
+        // SUNDAY(1)、MONDAY(2)、TUESDAY(3)、WEDNESDAY(4)、THURSDAY(5)、FRIDAY(6)、および SATURDAY(7)
+        if(idx > 0){
+            startTime.set(Calendar.DAY_OF_WEEK, idx);
+        }
+
+        startTime.set(Calendar.HOUR_OF_DAY, sethour);
+        startTime.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+        startTime.set(Calendar.MINUTE, setminute);
+        startTime.set(Calendar.SECOND, 0);
+
+        long alarmStartTime = startTime.getTimeInMillis();
+
+        alarm.set(
+                AlarmManager.RTC_WAKEUP,
+                alarmStartTime,
+                alarmIntent
+        );
+        notificationId++;
+
+        String title = Todo;
+        String updated = Integer.toString(hour) + ":" + Integer.toString(minuteOne) + Integer.toString(minuteTwo);
+        String date = "";
+        if (dayOfMonth < 10) {
+            date = Integer.toString(month) + "/0" + Integer.toString(dayOfMonth);
+        } else{
+            date = Integer.toString(month) + "/" + Integer.toString(dayOfMonth);
+        }
+
+        if(repeat){
+            //繰り返しONの場合はさらに繰り返しサービスを実行
+            //idは月+日+曜日
+            pendingId = Integer.toString(hour) + Integer.toString(minute) + Integer.toString(idx);
+            pendingid = Integer.parseInt(pendingId);
+
+            alarmIntent = PendingIntent.getBroadcast(
                     CustomActivity.this,
                     pendingid,
                     bootIntent,
                     PendingIntent.FLAG_CANCEL_CURRENT);
 
-
-
-
-            int sethour = hour;
-            int setminute = 0;
-            if(minuteOne > 0){
-                setminute = minuteOne * 10;
-            }
-            setminute += minuteTwo;
-
-            Calendar startTime = Calendar.getInstance();
-
-            int idx = week;
-            // SUNDAY(1)、MONDAY(2)、TUESDAY(3)、WEDNESDAY(4)、THURSDAY(5)、FRIDAY(6)、および SATURDAY(7)
-            if(idx > 0){
-                startTime.set(Calendar.DAY_OF_WEEK, idx);
-            }
-
-            startTime.set(Calendar.HOUR_OF_DAY, sethour);
-            startTime.set(Calendar.DAY_OF_MONTH, dayOfMonth);
-            startTime.set(Calendar.MINUTE, setminute);
-            startTime.set(Calendar.SECOND, 0);
-
-            long alarmStartTime = startTime.getTimeInMillis();
-
-            alarm.set(
+             alarm.setInexactRepeating(
                     AlarmManager.RTC_WAKEUP,
                     alarmStartTime,
+                    60480000,
                     alarmIntent
             );
-            notificationId++;
+            // ポップアップ表示
+            Toast.makeText(
+                    CustomActivity.this,
+                    "毎週" + idx + "曜日の" + hour + "時" + minuteOne + minuteTwo + "分にセットしました\n"   + "' " + Todo ,
+                    Toast.LENGTH_SHORT).show();
 
-            String title = Todo;
-            String updated = Integer.toString(hour) + ":" + Integer.toString(minuteOne) + Integer.toString(minuteTwo);
-            String date = "";
-            if (dayOfMonth < 10) {
-                date = Integer.toString(month) + "/0" + Integer.toString(dayOfMonth);
-            } else{
-                date = Integer.toString(month) + "/" + Integer.toString(dayOfMonth);
-            }
+        }
+
+
+
+
+
+
+
+
+
+
 
             ContentValues values = new ContentValues();
             values.put(MemoContract.Memos.COL_TITLE, title);
             values.put(MemoContract.Memos.COL_UPDATED, updated);
-            values.put(MemoContract.Memos.COL_CREATE, date);
+            if(repeat){
+                values.put(MemoContract.Memos.COL_CREATE, weekday);
+            } else {
+                values.put(MemoContract.Memos.COL_CREATE, date);
+            }
+
+        TextView textView = (TextView)findViewById(R.id.textView);
+        textView.setText(MemoContract.Memos._ID);
+
 
 
             //データ更新

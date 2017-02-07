@@ -2,14 +2,9 @@
     <string name="app_name">Noti</string>
 
     <string-array name="list">
-        <item>一回きり</item>
-        <item>日曜日</item>
-        <item>月曜日</item>
-        <item>火曜日</item>
-        <item>水曜日</item>
-        <item>木曜日</item>
-        <item>金曜日</item>
-        <item>土曜日</item>
+        <item>毎週</item>
+        <item>毎月</item>
+
     </string-array>
 
 

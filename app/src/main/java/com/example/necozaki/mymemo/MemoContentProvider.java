@@ -103,7 +103,7 @@ public class MemoContentProvider extends ContentProvider {
                 selectionArgs,
                 null,
                 null,
-                MemoContract.Memos._ID  //ID順にソート
+                MemoContract.Memos.COL_CREATE  //日付順にソート
         );
         c.setNotificationUri(getContext().getContentResolver(), uri);
        return c;
