@@ -172,7 +172,7 @@ public class CustomActivity extends AppCompatActivity {
                     weekday = "土曜日";
                     break;
             }
-        String pendingId = Integer.toString(year) + Integer.toString(month) + Integer.toString(dayOfMonth) + Integer.toString(hour) + Integer.toString(minute);
+        String pendingId = Integer.toString(month) + Integer.toString(dayOfMonth) + Integer.toString(hour) + Integer.toString(minute);
         int pendingid = Integer.parseInt(pendingId);
             // ポップアップ表示
             Toast.makeText(

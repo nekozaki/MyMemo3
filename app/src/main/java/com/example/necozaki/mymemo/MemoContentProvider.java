@@ -103,7 +103,7 @@ public class MemoContentProvider extends ContentProvider {
                 selectionArgs,
                 null,
                 null,
-                sortOrder
+                MemoContract.Memos._ID  //ID順にソート
         );
         c.setNotificationUri(getContext().getContentResolver(), uri);
        return c;

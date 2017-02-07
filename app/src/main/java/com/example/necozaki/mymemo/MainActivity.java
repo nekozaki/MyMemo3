@@ -25,6 +25,8 @@ import android.widget.Switch;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
 
+import java.util.Collections;
+
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
 
 
@@ -43,13 +45,15 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         final String[] from = {
                 MemoContract.Memos.COL_TITLE,
                 MemoContract.Memos.COL_UPDATED,
-                MemoContract.Memos.COL_CREATE
+                MemoContract.Memos.COL_CREATE,
+                MemoContract.Memos._ID
         };
 
         int[] to = {
                 R.id.text1,
                 R.id.text2,
-                R.id.text3
+                R.id.text3,
+                R.id.text4
         };
 
         adapter = new SimpleCursorAdapter(
@@ -60,6 +64,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 to,
                 0
         );
+
+
 
         ListView myListView = (ListView) findViewById(R.id.MyListView);
         myListView.setAdapter(adapter);
@@ -156,7 +162,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 projection,
                 null,
                 null,
-                MemoContract.Memos.COL_UPDATED + " DESC"
+                MemoContract.Memos._ID
+                //MemoContract.Memos.COL_UPDATED + " DESC"
         );
     }
 
