@@ -17,6 +17,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.CalendarView;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -34,6 +35,8 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import java.sql.Time;
 import java.util.Calendar;
 import android.app.TimePickerDialog;
+
+import static android.R.id.button2;
 
 public class CustomActivity extends AppCompatActivity {
 
@@ -55,6 +58,9 @@ public class CustomActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_custom);
+
+        Button button = (Button)findViewById(R.id.button2);
+        button.setEnabled(false);
 
 /*
         MemoOpenHelper memoOpenHelper = new MemoOpenHelper(this);
@@ -148,9 +154,11 @@ public class CustomActivity extends AppCompatActivity {
         AlarmNumber = intent.getIntExtra(MainActivity.AlarmNum,0);
         pendingid = intent.getStringExtra(MainActivity.pendingintent);
 
-        EditText editText = (EditText) findViewById(R.id.editText);
-        editText.setText(tododata);
+        //EditText editText = (EditText) findViewById(R.id.editText);
+        //editText.setText(tododata);
 
+        //TextView textView = (TextView) findViewById(R.id.textView);
+        //editText.setText(Long.toString(memoId));
 
     //    TimePicker timePicker = (TimePicker) this.findViewById(R.id.timePicker);
    //     timePicker.setIs24HourView(true);
@@ -182,6 +190,7 @@ public class CustomActivity extends AppCompatActivity {
         EditText editText = (EditText) findViewById(R.id.editText);
         // EditTextの中身を取得
         String Todo = editText.getText().toString().trim();
+
         //timePickerさんにお伺い
         //TimePicker timePicker = (TimePicker) this.findViewById(R.id.timePicker);
 
@@ -225,7 +234,7 @@ public class CustomActivity extends AppCompatActivity {
             // ポップアップ表示
             Toast.makeText(
                     CustomActivity.this,
-                   month + "月" + dayOfMonth + "日　" + weekday + "\n" + hour + "時" + minuteOne + minuteTwo + "分にセットしました\n"   + "' " + Todo ,
+                   month + "月" + dayOfMonth + "日　" + weekday + "\n" + hour + "時" + minuteOne + minuteTwo + "分にセットしました\n"   + "' " + Todo,
                     Toast.LENGTH_SHORT).show();
 
             //AlarmManager
@@ -236,9 +245,11 @@ public class CustomActivity extends AppCompatActivity {
             bootIntent.putExtra("notificationId",notificationId);
             bootIntent.putExtra("todo",Todo);
 
+
         //pendingintentの第二引数は重複不可であるため、現時点では日付+時刻の運用とする
         String pendingId = Integer.toString(month) + Integer.toString(dayOfMonth) + Integer.toString(hour) + Integer.toString(minute);
-        int pendingid = Integer.parseInt(pendingId);
+        int pendingid = (int)memoId;
+        //int pendingid = Integer.parseInt(pendingId);
 
         PendingIntent alarmIntent = PendingIntent.getBroadcast(
                 CustomActivity.this,
@@ -287,7 +298,7 @@ public class CustomActivity extends AppCompatActivity {
         if(repeat){
             //繰り返しONの場合はさらに繰り返しサービスを実行
             //idは月+日+曜日
-            pendingId = Integer.toString(hour) + Integer.toString(minute) + Integer.toString(idx);
+            pendingId = Long.toString(memoId) + "00";
             pendingid = Integer.parseInt(pendingId);
 
             alarmIntent = PendingIntent.getBroadcast(
@@ -305,19 +316,10 @@ public class CustomActivity extends AppCompatActivity {
             // ポップアップ表示
             Toast.makeText(
                     CustomActivity.this,
-                    "毎週" + idx + "曜日の" + hour + "時" + minuteOne + minuteTwo + "分にセットしました\n"   + "' " + Todo ,
+                    "毎週" + idx + "曜日の" + hour + "時" + minuteOne + minuteTwo + "分にセットしました\n"   + "' " + Todo + pendingid,
                     Toast.LENGTH_SHORT).show();
 
         }
-
-
-
-
-
-
-
-
-
 
 
             ContentValues values = new ContentValues();
@@ -329,8 +331,8 @@ public class CustomActivity extends AppCompatActivity {
                 values.put(MemoContract.Memos.COL_CREATE, date);
             }
 
-        TextView textView = (TextView)findViewById(R.id.textView);
-        textView.setText(MemoContract.Memos._ID);
+       // TextView textView = (TextView)findViewById(R.id.textView);
+        //textView.setText(MemoContract.Memos._ID);
 
 
 
@@ -352,6 +354,50 @@ public class CustomActivity extends AppCompatActivity {
 
 
     }
+    public void alarmCancel(View view){
+        Intent intent = getIntent();
+        memoId = intent.getLongExtra(MainActivity.EXTRA_MYID, 0L);
+        AlarmManager alarm = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+        // AlarmManagerから通知を受け取るレシーバーを定義する
+        Intent bootIntent = new Intent(CustomActivity.this, AlarmReceiver.class);
+        //bootIntent.putExtra("notificationId",notificationId);
+        int pendingid = (int)memoId;
+        PendingIntent alarmIntent = PendingIntent.getBroadcast(
+                CustomActivity.this,
+                pendingid,
+                bootIntent,
+                PendingIntent.FLAG_CANCEL_CURRENT);
+
+        alarmIntent.cancel();
+        alarm.cancel(alarmIntent);
+
+        String pendingId = Long.toString(memoId) + "00";
+        pendingid = Integer.parseInt(pendingId);
+
+        alarmIntent = PendingIntent.getBroadcast(
+                CustomActivity.this,
+                pendingid,
+                bootIntent,
+                PendingIntent.FLAG_CANCEL_CURRENT);
+
+        alarmIntent.cancel();
+        alarm.cancel(alarmIntent);
+
+
+
+        // ポップアップ表示
+        Toast.makeText(
+                CustomActivity.this,
+                "アラームを解除しました",
+                Toast.LENGTH_SHORT).show();
+
+        Button button = (Button)findViewById(R.id.button2);
+        button.setEnabled(true);
+
+    }
+
+
+
 
     //データ削除
     public void delete2(View view) {
@@ -360,6 +406,8 @@ public class CustomActivity extends AppCompatActivity {
                 .setMessage("削除してもよろしいですか？")
                 .setNegativeButton("Cancel", null)
                 .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+
+
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         Uri uri = ContentUris.withAppendedId(
