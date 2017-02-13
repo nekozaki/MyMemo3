@@ -15,14 +15,14 @@ public class MemoContentProvider extends ContentProvider {
     public static final Uri CONTENT_URI =
             Uri.parse("content://" + AUTHORITY + "/" + MemoContract.Memos.TABLE_NAME);
 
-    //UriMatcher
+    // UriMatcher
     private static final int MEMOS = 1;
     private static final int MEMO_ITEM = 2;
     private static final UriMatcher uriMatcher;
-    static{
+    static {
         uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
-        uriMatcher.addURI(AUTHORITY, MemoContract.Memos.TABLE_NAME,MEMOS);
-        uriMatcher.addURI(AUTHORITY, MemoContract.Memos.TABLE_NAME+"/#",MEMO_ITEM);
+        uriMatcher.addURI(AUTHORITY, MemoContract.Memos.TABLE_NAME, MEMOS);
+        uriMatcher.addURI(AUTHORITY, MemoContract.Memos.TABLE_NAME+"/#", MEMO_ITEM);
     }
 
     private MemoOpenHelper memoOpenHelper;
@@ -32,9 +32,8 @@ public class MemoContentProvider extends ContentProvider {
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        if(uriMatcher.match(uri) != MEMO_ITEM){
+        if (uriMatcher.match(uri) != MEMO_ITEM) {
             throw new IllegalArgumentException("Invalid URI: " + uri);
-
         }
         SQLiteDatabase db = memoOpenHelper.getWritableDatabase();
         int deletedCount = db.delete(
@@ -55,8 +54,8 @@ public class MemoContentProvider extends ContentProvider {
 
     @Override
     public Uri insert(Uri uri, ContentValues values) {
-        if(uriMatcher.match(uri) != MEMOS){
-            throw new IllegalArgumentException("Invalid URI:" + uri);
+        if (uriMatcher.match(uri) != MEMOS) {
+            throw new IllegalArgumentException("Invalid URI: " + uri);
         }
         SQLiteDatabase db = memoOpenHelper.getWritableDatabase();
         long newId = db.insert(
@@ -70,12 +69,10 @@ public class MemoContentProvider extends ContentProvider {
         );
         getContext().getContentResolver().notifyChange(newUri, null);
         return newUri;
-
     }
 
     @Override
     public boolean onCreate() {
-
         memoOpenHelper = new MemoOpenHelper(getContext());
         return true;
     }
@@ -88,7 +85,7 @@ public class MemoContentProvider extends ContentProvider {
             String[] selectionArgs,
             String sortOrder
     ) {
-        switch (uriMatcher.match(uri)){
+        switch(uriMatcher.match(uri)) {
             case MEMOS:
             case MEMO_ITEM:
                 break;
@@ -106,16 +103,14 @@ public class MemoContentProvider extends ContentProvider {
                 MemoContract.Memos.COL_CREATE  //日付順にソート
         );
         c.setNotificationUri(getContext().getContentResolver(), uri);
-       return c;
+        return c;
     }
 
     @Override
     public int update(Uri uri, ContentValues values, String selection,
                       String[] selectionArgs) {
-
-        if(uriMatcher.match(uri) != MEMO_ITEM){
+        if (uriMatcher.match(uri) != MEMO_ITEM) {
             throw new IllegalArgumentException("Invalid URI: " + uri);
-
         }
         SQLiteDatabase db = memoOpenHelper.getWritableDatabase();
         int updatedCount = db.update(
@@ -126,6 +121,5 @@ public class MemoContentProvider extends ContentProvider {
         );
         getContext().getContentResolver().notifyChange(uri, null);
         return updatedCount;
-
     }
 }

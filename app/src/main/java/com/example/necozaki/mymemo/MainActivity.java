@@ -1,34 +1,20 @@
 package com.example.necozaki.mymemo;
 
-import android.content.ContentUris;
 import android.content.ContentValues;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
-import android.net.Uri;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.support.v4.widget.SimpleCursorAdapter;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.CompoundButton;
 import android.widget.ListView;
-import android.widget.Switch;
-import android.widget.CompoundButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
-
-import java.util.Collections;
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
-
 
     private long memoId;
     private SimpleCursorAdapter adapter;
@@ -42,6 +28,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
 
         final String[] from = {
                 MemoContract.Memos.COL_TITLE,
@@ -85,49 +73,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             }
         });
 
-     //   Switch switch1 = (Switch) myListView.findViewById(R.id.mswitch);
-
-
-
-  //      myListView.setAdapter(adapter);
-
-          //  CompoundButton toggle = (CompoundButton) myListView.findViewById(R.id.mswitch);
-            //toggle.setChecked(true);
-       /*     toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-
-                @Override
-                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-
-
-                    Log.d(TAG,"wa-!");
-                }
-
-        });
-*/
-        /*長押し   myListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener(){
-            @Override
-            public boolean onItemLongClick(
-                    AdapterView<?> parent,
-                    View view,
-                    int position,
-                    long id
-            ) {
-                return true;
-            }
-        });
-*/
         getSupportLoaderManager().initLoader(0, null,this);
-
-
     }
-
-
-
-
-
-
-
-
 
     //新データ挿入
     public void insert2(View view){
@@ -162,7 +109,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 null,
                 null,
                 MemoContract.Memos._ID
-                //MemoContract.Memos.COL_UPDATED + " DESC"
         );
     }
 

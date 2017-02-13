@@ -15,11 +15,12 @@ public class MemoOpenHelper extends SQLiteOpenHelper{
 
     public static final String CREATE_TABLE =
             "create table memos (" +
-                    "_id integer primary key autoincrement, "+
-                    "title text," +
-                    "body text," +
-                    "off," +
-                    "updated datetime default current_timestamp)";
+                    "_id integer primary key autoincrement, " +
+                    "title text, " +
+                    "body text, " +
+                    "created text, " +
+                    "updated text)";
+
 
     public static final String INIT_TABLE =
             "insert into memos (title, body) values " +
